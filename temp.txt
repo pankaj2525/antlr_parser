@@ -1,1 +1,1 @@
-use hsdb
+db.col.find({"age":12})

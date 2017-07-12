@@ -1,12 +1,5 @@
 package com.antlr4.util;
 
-import static com.antlr4.config.ConfigurationUtils.GRAMMAR_FOLDER;
-import static com.antlr4.config.ConfigurationUtils.GRAMMAR_NAME;
-import static com.antlr4.config.ConfigurationUtils.GRAMMAR_RULE_NAME;
-import static com.antlr4.config.ConfigurationUtils.INPUT_FOLDER;
-import static com.antlr4.config.ConfigurationUtils.OUTPUT_FOLDER;
-import static com.antlr4.config.ConfigurationUtils.getProperty;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,7 +20,9 @@ import javax.tools.ToolProvider;
 import org.antlr.v4.Tool;
 import org.antlr.v4.tool.ErrorType;
 
+import com.antlr4.config.ConfigurationUtils;
 import com.antlr4.demo.GrammarParser;
+import com.antlr4.demo.Grammars;
 
 
 
@@ -36,7 +31,7 @@ public final class AntlrUtil {
 	protected static String JAR_PATH;
 	static {
 		try {
-			JAR_PATH = getJarPath();
+			JAR_PATH = "/home/synerzip/workspace/antlr_parser/antlr_parser/target/classes:/usr/local/lib/antlr-4.7-complete.jar";
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -63,27 +58,6 @@ public final class AntlrUtil {
 	 * 
 	 * @throws Exception
 	 */
-	public static void generateJavaFiles() throws Exception {
-		String[] toolInputArgs = getToolInputArgs();
-		Tool antlr = new Tool(toolInputArgs);
-		if (toolInputArgs.length == 0) {
-			antlr.help();
-			antlr.exit(0);
-		}
-
-		try {
-			antlr.processGrammarsOnCommandLine();
-		} finally {
-			if (antlr.log) {
-				try {
-					String logname = antlr.logMgr.save();
-					System.out.println("wrote " + logname);
-				} catch (IOException ioe) {
-					antlr.errMgr.toolError(ErrorType.INTERNAL_ERROR, ioe);
-				}
-			}
-		}
-	}
 public static final String TEMP_FILE = "temp.txt";
 	/**
 	 * This operation gernates output in form of tree give a input file
@@ -91,16 +65,17 @@ public static final String TEMP_FILE = "temp.txt";
 	 * @throws Exception
 	 */
 	public static void generateOuput() throws Exception {
-		
+		for (int j = 0 ; j < ConfigurationUtils.myPojo.getGrammars().length;j++ )
+		{
 		try {
-			List<String> fileNames = getInputFiles(getProperty(INPUT_FOLDER));
-			String ruleName = getProperty(GRAMMAR_RULE_NAME);
-			String grammarName = getProperty(GRAMMAR_NAME);
+			List<String> fileNames = getInputFiles(ConfigurationUtils.myPojo.getGrammars()[j].getProperties().getInputFolder());
+			String ruleName = ConfigurationUtils.myPojo.getGrammars()[j].getProperties().getStartRule();
+			String grammarName = ConfigurationUtils.myPojo.getGrammars()[j].getName();
 			List<String> commandListArgs = new ArrayList<String>();
 			PrintWriter outputWriter = null;
 			BufferedReader inputBufferedReader = null;
 			for (int i = 0; i < fileNames.size(); i++) {
-				outputWriter = new PrintWriter(getProperty(OUTPUT_FOLDER) + File.separator +fileNames.get(i) + "_output.txt");
+				outputWriter = new PrintWriter(ConfigurationUtils.myPojo.getGrammars()[j].getProperties().getOuputFolder() + File.separator +fileNames.get(i) + "_output.txt");
 				outputWriter.print("");
 				outputWriter.close();
 				Process proc = null;
@@ -111,7 +86,7 @@ public static final String TEMP_FILE = "temp.txt";
 				BufferedReader bufferedReader = null;
 				
 				inputBufferedReader = new BufferedReader(new InputStreamReader(
-						new FileInputStream(getProperty(INPUT_FOLDER) + File.separator + fileNames.get(i))));
+						new FileInputStream(ConfigurationUtils.myPojo.getGrammars()[j].getProperties().getInputFolder() + File.separator + fileNames.get(i))));
 				String line1;
 				while ((line1 = inputBufferedReader.readLine()) != null) {
 					rt = Runtime.getRuntime();
@@ -143,7 +118,7 @@ public static final String TEMP_FILE = "temp.txt";
 
 					String line;
 					while ((line = bufferedReader.readLine()) != null) {
-						writeOutput(line, fileNames.get(i));
+						writeOutput(line, fileNames.get(i),j);
 					}
 
 					bufferedReader.close();
@@ -158,12 +133,13 @@ public static final String TEMP_FILE = "temp.txt";
 			t.printStackTrace();
 			throw t;
 		}
+		}
 	}
 
-	private static void writeOutput(String line, String fileName) {
+	private static void writeOutput(String line, String fileName,int j ) {
 
 		try {
-			Files.write(Paths.get(getProperty(OUTPUT_FOLDER) + File.separator +fileName + "_output.txt"), ("Output : " + line + "\n\n\n").getBytes(),
+			Files.write(Paths.get(ConfigurationUtils.myPojo.getGrammars()[j].getProperties().getOuputFolder()+ File.separator +fileName + "_output.txt"), ("Output : " + line + "\n\n\n").getBytes(),
 					StandardOpenOption.APPEND);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -194,59 +170,5 @@ public static final String TEMP_FILE = "temp.txt";
 	 * 
 	 * @throws Exception
 	 */
-	public static void compileJavaFiles() throws Exception {
-		List<String> javaFiles = getJavaFilesForCompilation();
-		String[] javaFileArr = new String[javaFiles.size()];
-		javaFileArr = javaFiles.toArray(javaFileArr);
 
-		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-		int compilationResult = compiler.run(null, null, null, javaFileArr);
-		if (compilationResult == 0) {
-			System.out.println("Compilation is successful");
-		} else {
-			System.out.println("Compilation Failed");
-		}
-
-	}
-
-	private static List<String> getJavaFilesForCompilation() throws Exception {
-		List<String> javaFiles = new ArrayList<String>();
-		Files.find(Paths.get(getProperty(GRAMMAR_FOLDER)), 999, (p, bfa) -> bfa.isRegularFile()).forEach(f -> {
-
-			String path = f.toAbsolutePath().toString();
-
-			String fileName = f.getFileName().toString();
-			String extension = fileName.substring(fileName.lastIndexOf(".") + 1, fileName.length());
-			if ("java".equals(extension) && path != null && new File(path).exists()) {
-				System.out.println("java file : " + path);
-				javaFiles.add(path.trim());
-			}
-		});
-		return javaFiles;
-	}
-
-	private static String[] getToolInputArgs() throws Exception {
-		String grammarPath = getProperty(GRAMMAR_FOLDER);
-		List<String> arguments = new ArrayList<>();
-		arguments.add("-o");
-		arguments.add(grammarPath);
-
-		Files.find(Paths.get(grammarPath), 999, (p, bfa) -> bfa.isRegularFile()).forEach(f -> {
-
-			String path = f.toAbsolutePath().toString();
-			System.out.println(path);
-			String fileName = f.getFileName().toString();
-			String extension = fileName.substring(fileName.lastIndexOf(".") + 1, fileName.length());
-			if ("g4".equals(extension)) {
-				arguments.add(path);
-			}
-		});
-		int argLength = 0;
-		String[] input = new String[arguments.size()];
-		for (String item : arguments) {
-			input[argLength++] = item;
-		}
-
-		return input;
-	}
 }

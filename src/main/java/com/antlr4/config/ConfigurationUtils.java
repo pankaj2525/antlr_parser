@@ -1,18 +1,16 @@
 package com.antlr4.config;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
+import com.antlr4.demo.Pojo;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 public final class ConfigurationUtils {
-	public static final Properties configProperties = new Properties();
-	public static final String GRAMMAR_FOLDER = "antlr.grammar.folder";
-	public static final String INPUT_FOLDER = "antlr.input.folder";
-	public static final String OUTPUT_FOLDER = "antlr.output.folder";
-	public static final String GRAMMAR_RULE_NAME = "antlr.rule.name";
-	public static final String GRAMMAR_NAME = "antlr.grammar.name";
+	public static Pojo myPojo;
 
 	/**
 	 * This operation reads input file for configuration parameters and creates
@@ -22,55 +20,17 @@ public final class ConfigurationUtils {
 	 * @throws Exception
 	 */
 	public static final void loadConfiguration(String[] args) throws Exception {
-		String file = null;
-
-		for (int i = 0; i < (args.length - 1); i++) {
-			if ("--configpath".equals(args[i])) {
-				if (args[i + 1] != null && new File(args[i + 1].trim()).isFile()) {
-					file = args[i + 1];
-
-				}
-				break;
-			}
-		}
-		if (file == null || file.trim() == "") {
-
-			throw new Exception(
-					"specify --configpath as command line argument followed by path to configuration file..\n e.g --configpath /home/filename.properties");
-		}
-		InputStream inputStream = null;
-
+		ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 		try {
-
-			inputStream = new FileInputStream(file);
-
-			// load a properties file
-			configProperties.load(inputStream);
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		} finally {
-			if (inputStream != null) {
-				try {
-					inputStream.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
+			String fileName = "config/config.yaml";
+			ClassLoader classLoader = new Pojo().getClass().getClassLoader();
+			File file = new File(classLoader.getResource(fileName).getFile());
+			myPojo = mapper.readValue(file, Pojo.class);
+			System.out.println(myPojo.getGrammars()[0].getName());
+			System.out.println(ReflectionToStringBuilder.toString(myPojo, ToStringStyle.MULTI_LINE_STYLE));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-	}
-
-	/**
-	 * This operation returns configuration for key passed
-	 * 
-	 * @param key
-	 * @return
-	 * @throws Exception
-	 */
-	public static String getProperty(String key) throws Exception {
-		String value = configProperties.getProperty(key);
-		if (value == null || value.trim() == "") {
-			throw new Exception("key : " + key + " not found");
-		}
-		return value;
 	}
 }
