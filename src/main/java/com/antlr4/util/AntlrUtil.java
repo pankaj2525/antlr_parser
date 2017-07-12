@@ -16,11 +16,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
 
 import org.antlr.v4.Tool;
 import org.antlr.v4.tool.ErrorType;
@@ -120,7 +122,7 @@ public static final String TEMP_FILE = "temp.txt";
 					commandListArgs = new ArrayList<String>();
 					commandListArgs.add("java");
 					commandListArgs.add("-cp");
-					commandListArgs.add(JAR_PATH + File.pathSeparator + getProperty(GRAMMAR_FOLDER) + File.separator);
+					commandListArgs.add(JAR_PATH);
 					commandListArgs.add("org.antlr.v4.gui.TestRig");
 					commandListArgs.add(grammarName);
 					commandListArgs.add(ruleName);
@@ -194,29 +196,15 @@ public static final String TEMP_FILE = "temp.txt";
 	 */
 	public static void compileJavaFiles() throws Exception {
 		List<String> javaFiles = getJavaFilesForCompilation();
-		try {
-			Runtime rt = Runtime.getRuntime();
-			List<String> cmd = new ArrayList<String>();
-			cmd.add("javac");
-			cmd.add("-cp");
-			cmd.add(JAR_PATH);
-			for (String file : javaFiles) {
-				cmd.add(file.trim());
+		String[] javaFileArr = new String[javaFiles.size()];
+		javaFileArr = javaFiles.toArray(javaFileArr);
 
-			}
-			System.out.println("compileJavaFiles : "+cmd);
-			Process proc = rt.exec(cmd.toArray(new String[cmd.size()]));
-			int exitVal = proc.waitFor();
-			System.out.println("Process exitValue: " + exitVal);
-			int len;
-			if ((len = proc.getErrorStream().available()) > 0) {
-				byte[] buf = new byte[len];
-				proc.getErrorStream().read(buf);
-				System.err.println("Command error:\t\"" + new String(buf) + "\"");
-			}
-		} catch (Throwable t) {
-			t.printStackTrace();
-			throw t;
+		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+		int compilationResult = compiler.run(null, null, null, javaFileArr);
+		if (compilationResult == 0) {
+			System.out.println("Compilation is successful");
+		} else {
+			System.out.println("Compilation Failed");
 		}
 
 	}
@@ -229,9 +217,9 @@ public static final String TEMP_FILE = "temp.txt";
 
 			String fileName = f.getFileName().toString();
 			String extension = fileName.substring(fileName.lastIndexOf(".") + 1, fileName.length());
-			if ("java".equals(extension)) {
+			if ("java".equals(extension) && path != null && new File(path).exists()) {
 				System.out.println("java file : " + path);
-				javaFiles.add(path);
+				javaFiles.add(path.trim());
 			}
 		});
 		return javaFiles;
