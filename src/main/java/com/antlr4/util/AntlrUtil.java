@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -14,15 +13,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
-
-import org.antlr.v4.Tool;
-import org.antlr.v4.tool.ErrorType;
-
 import com.antlr4.config.ConfigurationUtils;
 import com.antlr4.demo.GrammarParser;
-import com.antlr4.demo.Grammars;
 
 
 
@@ -87,12 +79,14 @@ public static final String TEMP_FILE = "temp.txt";
 				
 				inputBufferedReader = new BufferedReader(new InputStreamReader(
 						new FileInputStream(ConfigurationUtils.myPojo.getGrammars()[j].getProperties().getInputFolder() + File.separator + fileNames.get(i))));
-				String line1;
-				while ((line1 = inputBufferedReader.readLine()) != null) {
+				String inputLine;
+				Boolean validInput = true;
+				String errorString = null;
+				while ((inputLine = inputBufferedReader.readLine()) != null) {
 					rt = Runtime.getRuntime();
 					PrintWriter tempFile = new PrintWriter(TEMP_FILE);
 					tempFile.print("");
-					tempFile.print(line1);
+					tempFile.print(inputLine);
 					tempFile.close();
 					commandListArgs = new ArrayList<String>();
 					commandListArgs.add("java");
@@ -107,20 +101,22 @@ public static final String TEMP_FILE = "temp.txt";
 					int exitVal = proc.waitFor();
 					System.out.println("Process exitValue: " + exitVal);
 					int len;
+					validInput = true;
 					if ((len = proc.getErrorStream().available()) > 0) {
 						byte[] buf = new byte[len];
 						proc.getErrorStream().read(buf);
+						validInput = false;
+						errorString = new String(buf);
 						System.err.println("Command error:\t\"" + new String(buf) + "\"");
 					}
 					inputStream = proc.getInputStream();
 					inputStreamReader = new InputStreamReader(inputStream);
 					bufferedReader = new BufferedReader(inputStreamReader);
 
-					String line;
-					while ((line = bufferedReader.readLine()) != null) {
-						writeOutput(line, fileNames.get(i),j);
+					String outputLine;
+					while ((outputLine = bufferedReader.readLine()) != null) {
+						writeOutput(inputLine,outputLine, fileNames.get(i),validInput,errorString,j);
 					}
-
 					bufferedReader.close();
 					inputStreamReader.close();
 					inputStream.close();
@@ -136,15 +132,24 @@ public static final String TEMP_FILE = "temp.txt";
 		}
 	}
 
-	private static void writeOutput(String line, String fileName,int j ) {
+	private static void writeOutput(String inputLine,String outputLine, String fileName,Boolean validInput,String errorString,int j) {
 
 		try {
-			Files.write(Paths.get(ConfigurationUtils.myPojo.getGrammars()[j].getProperties().getOuputFolder()+ File.separator +fileName + "_output.txt"), ("Output : " + line + "\n\n\n").getBytes(),
-					StandardOpenOption.APPEND);
+			Files.write(Paths.get(ConfigurationUtils.myPojo.getGrammars()[j].getProperties().getOuputFolder() + File.separator + fileName + "_output.txt"),
+					("Input : " + inputLine + "\n").getBytes(), StandardOpenOption.APPEND);
+			Files.write(Paths.get(ConfigurationUtils.myPojo.getGrammars()[j].getProperties().getOuputFolder() + File.separator + fileName + "_output.txt"),
+					("Valid Input : " + validInput + "\n").getBytes(), StandardOpenOption.APPEND);
+			if(!validInput){
+				Files.write(Paths.get(ConfigurationUtils.myPojo.getGrammars()[j].getProperties().getOuputFolder() + File.separator + fileName + "_output.txt"),
+						("Output : " + errorString + "\n\n").getBytes(), StandardOpenOption.APPEND);
+			}else{
+			Files.write(Paths.get(ConfigurationUtils.myPojo.getGrammars()[j].getProperties().getOuputFolder() + File.separator + fileName + "_output.txt"),
+					("Output : " + outputLine + "\n\n\n").getBytes(), StandardOpenOption.APPEND);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		System.out.println("output: " + line + "\n\n");
+		System.out.println("output: " + outputLine + "\n\n");
 
 	}
 
