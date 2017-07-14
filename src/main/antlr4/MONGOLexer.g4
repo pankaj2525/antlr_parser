@@ -10,9 +10,6 @@ lexer grammar MONGOLexer;
 
 
 // SKIP
-SINGLESPACE :
-' '+
-;
 SPACE
 :
 	[ \t\r\n]+ -> channel ( HIDDEN )

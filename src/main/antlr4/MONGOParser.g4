@@ -10,8 +10,7 @@ mongo_statements
 	mongo_statement EOF
 ;
 mongo_statement
-:	database_command
-	| role_management_methods
+:	 role_management_methods
 	| intialQuerry collection_methods (DOT  collection_methods)*
 	| db_name DOT  database_methods
 
@@ -32,13 +31,6 @@ role_method:
 	|GETROLES
 ;
 
-
-
-database_command
-: 
-	TEXT (SINGLESPACE) TEXT	
-	| (DB DOT TEXT OPEN_ROUND_BRACKET json_input CLOSE_ROUND_BRACKET)
-;
 
 
 cursor_methods

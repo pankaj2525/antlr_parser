@@ -47,7 +47,6 @@ public final class ConfigurationUtils {
 				myPojo = mapper.readValue(file, Pojo.class);
 			}
 
-			myPojo = mapper.readValue(file, Pojo.class);
 			System.out.println(myPojo.getGrammars()[0].getName());
 			System.out.println(ReflectionToStringBuilder.toString(myPojo, ToStringStyle.MULTI_LINE_STYLE));
 		} catch (Exception e) {
