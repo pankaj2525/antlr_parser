@@ -23,7 +23,7 @@ public final class AntlrUtil {
 	protected static String JAR_PATH;
 	static {
 		try {
-			JAR_PATH = "/home/synerzip/workspace/antlr_parser/antlr_parser/target/classes:/usr/local/lib/antlr-4.7-complete.jar";
+			JAR_PATH = getJarPath();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
