@@ -59,7 +59,7 @@
 						<transformers>
 							<transformer
 								implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-								<mainClass>com.antlr4.demo.GrammarParser</mainClass>
+								<mainClass>GrammarParser</mainClass>
 							</transformer>
 						</transformers>
 					</configuration>

@@ -1,11 +1,4 @@
-package com.antlr4.util;
 
-import static com.antlr4.config.ConfigurationUtils.GRAMMAR_FOLDER;
-import static com.antlr4.config.ConfigurationUtils.GRAMMAR_NAME;
-import static com.antlr4.config.ConfigurationUtils.GRAMMAR_RULE_NAME;
-import static com.antlr4.config.ConfigurationUtils.INPUT_FOLDER;
-import static com.antlr4.config.ConfigurationUtils.OUTPUT_FOLDER;
-import static com.antlr4.config.ConfigurationUtils.getProperty;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -26,8 +19,6 @@ import javax.tools.ToolProvider;
 
 import org.antlr.v4.Tool;
 import org.antlr.v4.tool.ErrorType;
-
-import com.antlr4.demo.GrammarParser;
 
 
 
@@ -93,14 +84,14 @@ public static final String TEMP_FILE = "temp.txt";
 	public static void generateOuput() throws Exception {
 		
 		try {
-			List<String> fileNames = getInputFiles(getProperty(INPUT_FOLDER));
-			String ruleName = getProperty(GRAMMAR_RULE_NAME);
-			String grammarName = getProperty(GRAMMAR_NAME);
+			List<String> fileNames = getInputFiles(ConfigurationUtils.getProperty(ConfigurationUtils.INPUT_FOLDER));
+			String ruleName = ConfigurationUtils.getProperty(ConfigurationUtils.GRAMMAR_RULE_NAME);
+			String grammarName = ConfigurationUtils.getProperty(ConfigurationUtils.GRAMMAR_NAME);
 			List<String> commandListArgs = new ArrayList<String>();
 			PrintWriter outputWriter = null;
 			BufferedReader inputBufferedReader = null;
 			for (int i = 0; i < fileNames.size(); i++) {
-				outputWriter = new PrintWriter(getProperty(OUTPUT_FOLDER) + File.separator +fileNames.get(i) + "_output.txt");
+				outputWriter = new PrintWriter(ConfigurationUtils.getProperty(ConfigurationUtils.OUTPUT_FOLDER) + File.separator +fileNames.get(i) + "_output.txt");
 				outputWriter.print("");
 				outputWriter.close();
 				Process proc = null;
@@ -111,7 +102,7 @@ public static final String TEMP_FILE = "temp.txt";
 				BufferedReader bufferedReader = null;
 				
 				inputBufferedReader = new BufferedReader(new InputStreamReader(
-						new FileInputStream(getProperty(INPUT_FOLDER) + File.separator + fileNames.get(i))));
+						new FileInputStream(ConfigurationUtils.getProperty(ConfigurationUtils.INPUT_FOLDER) + File.separator + fileNames.get(i))));
 				String line1;
 				while ((line1 = inputBufferedReader.readLine()) != null) {
 					rt = Runtime.getRuntime();
@@ -163,7 +154,7 @@ public static final String TEMP_FILE = "temp.txt";
 	private static void writeOutput(String line, String fileName) {
 
 		try {
-			Files.write(Paths.get(getProperty(OUTPUT_FOLDER) + File.separator +fileName + "_output.txt"), ("Output : " + line + "\n\n\n").getBytes(),
+			Files.write(Paths.get(ConfigurationUtils.getProperty(ConfigurationUtils.OUTPUT_FOLDER) + File.separator +fileName + "_output.txt"), ("Output : " + line + "\n\n\n").getBytes(),
 					StandardOpenOption.APPEND);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -211,7 +202,7 @@ public static final String TEMP_FILE = "temp.txt";
 
 	private static List<String> getJavaFilesForCompilation() throws Exception {
 		List<String> javaFiles = new ArrayList<String>();
-		Files.find(Paths.get(getProperty(GRAMMAR_FOLDER)), 999, (p, bfa) -> bfa.isRegularFile()).forEach(f -> {
+		Files.find(Paths.get(ConfigurationUtils.getProperty(ConfigurationUtils.GRAMMAR_FOLDER)), 999, (p, bfa) -> bfa.isRegularFile()).forEach(f -> {
 
 			String path = f.toAbsolutePath().toString();
 
@@ -226,7 +217,7 @@ public static final String TEMP_FILE = "temp.txt";
 	}
 
 	private static String[] getToolInputArgs() throws Exception {
-		String grammarPath = getProperty(GRAMMAR_FOLDER);
+		String grammarPath = ConfigurationUtils.getProperty(ConfigurationUtils.GRAMMAR_FOLDER);
 		List<String> arguments = new ArrayList<>();
 		arguments.add("-o");
 		arguments.add(grammarPath);
