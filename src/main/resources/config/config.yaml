@@ -5,15 +5,3 @@ grammars:
     inputFolder: "/home/synerzip/input-files"
     startRule: mongo_statements
     grammarFolder: "/home/synerzip/workspace/antlr_parser/antlr_parser/src/main/resources/grammar"
-- name: MONGO
-  properties:
-    ouputFolder: "/home/synerzip/output-files"
-    inputFolder: "/home/synerzip/input-files"
-    startRule: mongo_statements
-    grammarFolder: "/home/synerzip/workspace/antlr_parser/antlr_parser/src/main/resources/grammar"
-- name: MONGO
-  properties:
-    ouputFolder: "/home/synerzip/output-files"
-    inputFolder: "/home/synerzip/input-files"
-    startRule: mongo_statements
-    grammarFolder: "/home/synerzip/workspace/antlr_parser/antlr_parser/src/main/resources/grammar"

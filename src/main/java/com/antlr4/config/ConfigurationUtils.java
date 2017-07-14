@@ -1,6 +1,7 @@
 package com.antlr4.config;
 
 import java.io.File;
+import java.io.InputStream;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -38,11 +39,12 @@ public final class ConfigurationUtils {
 
 				System.out.println(
 						"specify --configpath as command line argument followed by path to configuration file..\n e.g --configpath /home/filename.properties");
-				filePath = "config/config.yaml";
-				ClassLoader classLoader = new Pojo().getClass().getClassLoader();
-				file = new File(classLoader.getResource(filePath).getFile());
+				filePath = "/config/config.yaml";
+				InputStream in = new Pojo().getClass().getResourceAsStream(filePath); 
+				myPojo = mapper.readValue(in, Pojo.class);
 			} else {
 				file = new File(filePath);
+				myPojo = mapper.readValue(file, Pojo.class);
 			}
 
 			myPojo = mapper.readValue(file, Pojo.class);
